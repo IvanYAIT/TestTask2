@@ -1,69 +1,57 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class TargetScript : MonoBehaviour {
-
-	float randomTime;
-	bool routineStarted = false;
-
-	//Used to check if the target has been hit
-	public bool isHit = false;
-
+public class TargetScript : MonoBehaviour, IHaveProjectileReaction { // Добавил интерфейс IHaveProjectileReaction
+    /*
+        Удалил переменные routineStarted а также метод Update
+        Изменил переменную isHit на свойста IsHit
+    */
 	[Header("Customizable Options")]
-	//Minimum time before the target goes back up
 	public float minTime;
-	//Maximum time before the target goes back up
 	public float maxTime;
 
 	[Header("Audio")]
-	public AudioClip upSound;
+    public AudioSource audioSource;
+    public AudioClip upSound;
 	public AudioClip downSound;
 
 	[Header("Animations")]
-	public AnimationClip targetUp;
+	public Animation animation; //Добавил переменную
+    public AnimationClip targetUp;
 	public AnimationClip targetDown;
 
-	public AudioSource audioSource;
-	
-	private void Update () {
-		
-		//Generate random time based on min and max time values
-		randomTime = Random.Range (minTime, maxTime);
+    private float randomTime;// Добавил private 
 
-		//If the target is hit
-		if (isHit == true) 
-		{
-			if (routineStarted == false) 
-			{
-				//Animate the target "down"
-				gameObject.GetComponent<Animation>().clip = targetDown;
-				gameObject.GetComponent<Animation>().Play();
+    public bool IsHit { get; private set; } 
 
-				//Set the downSound as current sound, and play it
-				audioSource.GetComponent<AudioSource>().clip = downSound;
-				audioSource.Play();
+    public void React()
+	{
+        // Перенес логику из Update
+        if (!IsHit)
+        {
+            IsHit = true; // Добавил
 
-				//Start the timer
-				StartCoroutine(DelayTimer());
-				routineStarted = true;
-			} 
-		}
-	}
+            animation.clip = targetDown; // Поменял gameObject.GetComponent<Animation>() на animation
+            animation.Play(); // Поменял gameObject.GetComponent<Animation>() на animation
 
-	//Time before the target pops back up
-	private IEnumerator DelayTimer () {
-		//Wait for random amount of time
-		yield return new WaitForSeconds(randomTime);
-		//Animate the target "up" 
-		gameObject.GetComponent<Animation>().clip = targetUp;
-		gameObject.GetComponent<Animation>().Play();
+            audioSource.clip = downSound; // Убрал .GetComponent<AudioSource>()
+            audioSource.Play();
 
-		//Set the upSound as current sound, and play it
-		audioSource.GetComponent<AudioSource>().clip = upSound;
-		audioSource.Play();
+            StartCoroutine(DelayTimer());
+        }
+    }
 
-		//Target is no longer hit
-		isHit = false;
-		routineStarted = false;
-	}
+    private IEnumerator DelayTimer () {
+        randomTime = Random.Range(minTime, maxTime); // Перенес из Update
+
+        yield return new WaitForSeconds(randomTime);
+        animation.clip = targetUp; // Поменял gameObject.GetComponent<Animation>() на animation
+        animation.Play(); // Поменял gameObject.GetComponent<Animation>() на animation
+
+        audioSource.clip = upSound; // Убрал .GetComponent<AudioSource>()
+        audioSource.Play();
+
+        IsHit = false; // Добавил
+    }
+
 }

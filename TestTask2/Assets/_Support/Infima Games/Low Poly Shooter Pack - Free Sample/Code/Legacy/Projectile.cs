@@ -24,19 +24,14 @@ public class Projectile : MonoBehaviour {
 
 	private void Start ()
 	{
-		//Grab the game mode service, we need it to access the player character!
 		var gameModeService = ServiceLocator.Current.Get<IGameModeService>();
-		//Ignore the main player character's collision. A little hacky, but it should work.
 		Physics.IgnoreCollision(gameModeService.GetPlayerCharacter().GetComponent<Collider>(), GetComponent<Collider>());
 		
-		//Start destroy timer
 		StartCoroutine (DestroyAfter ());
 	}
 
-	//If the bullet collides with anything
 	private void OnCollisionEnter (Collision collision)
 	{
-		//Ignore collisions with other projectiles.
 		if (collision.gameObject.GetComponent<Projectile>() != null)
 			return;
 		
@@ -60,101 +55,62 @@ public class Projectile : MonoBehaviour {
 		{
 			StartCoroutine (DestroyTimer ());
 		}
-		//Otherwise, destroy bullet on impact
 		else 
 		{
 			Destroy (gameObject);
 		}
 
-		//If bullet collides with "Blood" tag
-		if (collision.transform.tag == "Blood") 
+		// Поменял 4 if на switch
+		switch (collision.transform.tag)
 		{
-			//Instantiate random impact prefab from array
-			Instantiate (bloodImpactPrefabs [Random.Range 
-				(0, bloodImpactPrefabs.Length)], transform.position, 
-				Quaternion.LookRotation (collision.contacts [0].normal));
-			//Destroy bullet object
-			Destroy(gameObject);
-		}
+			case "Blood":
+                Instantiate(bloodImpactPrefabs[Random.Range
+					(0, bloodImpactPrefabs.Length)], transform.position,
+					Quaternion.LookRotation(collision.contacts[0].normal));
+                Destroy(gameObject);
+				break;
+            case "Metal":
+                Instantiate(metalImpactPrefabs[Random.Range
+                    (0, bloodImpactPrefabs.Length)], transform.position,
+                    Quaternion.LookRotation(collision.contacts[0].normal));
+                Destroy(gameObject);
+                break;
+            case "Dirt":
+                Instantiate(dirtImpactPrefabs[Random.Range
+                    (0, bloodImpactPrefabs.Length)], transform.position,
+                    Quaternion.LookRotation(collision.contacts[0].normal));
+                Destroy(gameObject);
+                break;
+            case "Concrete":
+                Instantiate(concreteImpactPrefabs[Random.Range
+                    (0, bloodImpactPrefabs.Length)], transform.position,
+                    Quaternion.LookRotation(collision.contacts[0].normal));
+                Destroy(gameObject);
+                break;
+        }
 
-		//If bullet collides with "Metal" tag
-		if (collision.transform.tag == "Metal") 
-		{
-			//Instantiate random impact prefab from array
-			Instantiate (metalImpactPrefabs [Random.Range 
-				(0, bloodImpactPrefabs.Length)], transform.position, 
-				Quaternion.LookRotation (collision.contacts [0].normal));
-			//Destroy bullet object
-			Destroy(gameObject);
-		}
+        // Изменил проверку по тэгам на проверку наличия компонента
+        IHaveProjectileReaction hit;
+        collision.gameObject.TryGetComponent<IHaveProjectileReaction>(out hit);
 
-		//If bullet collides with "Dirt" tag
-		if (collision.transform.tag == "Dirt") 
+        if (hit != null)
 		{
-			//Instantiate random impact prefab from array
-			Instantiate (dirtImpactPrefabs [Random.Range 
-				(0, bloodImpactPrefabs.Length)], transform.position, 
-				Quaternion.LookRotation (collision.contacts [0].normal));
-			//Destroy bullet object
-			Destroy(gameObject);
-		}
+			hit.React();
 
-		//If bullet collides with "Concrete" tag
-		if (collision.transform.tag == "Concrete") 
-		{
-			//Instantiate random impact prefab from array
-			Instantiate (concreteImpactPrefabs [Random.Range 
-				(0, bloodImpactPrefabs.Length)], transform.position, 
-				Quaternion.LookRotation (collision.contacts [0].normal));
-			//Destroy bullet object
-			Destroy(gameObject);
-		}
-
-		//If bullet collides with "Target" tag
-		if (collision.transform.tag == "Target") 
-		{
-			//Toggle "isHit" on target object
-			collision.transform.gameObject.GetComponent
-				<TargetScript>().isHit = true;
-			//Destroy bullet object
-			Destroy(gameObject);
-		}
-			
-		//If bullet collides with "ExplosiveBarrel" tag
-		if (collision.transform.tag == "ExplosiveBarrel") 
-		{
-			//Toggle "explode" on explosive barrel object
-			collision.transform.gameObject.GetComponent
-				<ExplosiveBarrelScript>().explode = true;
-			//Destroy bullet object
-			Destroy(gameObject);
-		}
-
-		//If bullet collides with "GasTank" tag
-		if (collision.transform.tag == "GasTank") 
-		{
-			//Toggle "isHit" on gas tank object
-			collision.transform.gameObject.GetComponent
-				<GasTankScript> ().isHit = true;
-			//Destroy bullet object
-			Destroy(gameObject);
-		}
+            Destroy(gameObject);
+        }
 	}
 
 	private IEnumerator DestroyTimer () 
 	{
-		//Wait random time based on min and max values
 		yield return new WaitForSeconds
 			(Random.Range(minDestroyTime, maxDestroyTime));
-		//Destroy bullet object
 		Destroy(gameObject);
 	}
 
 	private IEnumerator DestroyAfter () 
 	{
-		//Wait for set amount of time
 		yield return new WaitForSeconds (destroyAfter);
-		//Destroy bullet object
 		Destroy (gameObject);
 	}
 }
