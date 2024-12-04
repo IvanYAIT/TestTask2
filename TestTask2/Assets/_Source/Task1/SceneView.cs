@@ -38,7 +38,7 @@ namespace Task1
 
         public void SetSceneProgress(float value)
         {
-            sceneText.text = $"След. сцена: {value * 100:F0}/100%";
+            sceneText.text = $"Next scene: {value * 100:F0}/100%";
             sceneSlider.value = value;
         }
     }

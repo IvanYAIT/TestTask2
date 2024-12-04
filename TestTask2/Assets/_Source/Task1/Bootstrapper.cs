@@ -12,7 +12,7 @@ namespace Task1
     {
         private static string URL = "https://rc-today.ru/UserFiles/Image/a3/fd/kartina_po_nomeram_molly_prischepa_kraski_vechera_40h50_24_tsveta_kh0617_5eb2a3691b37a_6798_big.jpg";
         private static string SPRITE_NAME = "Image";
-        private static string SCENE_NAME = "SampleScene";
+        private static string SCENE_NAME = "S_Content_Overview";
 
         [SerializeField] private SceneView view;
 
