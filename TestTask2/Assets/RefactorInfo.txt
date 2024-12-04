@@ -1,8 +1,0 @@
-﻿Созданный скрипты:
-	1.IHaveProjectileReaction
-Изменненйы скрипты:
-	1. GasTankScript
-	2. ExplosiveBarrelScript
-	3. TargetScript
-	4. Projectile
-	5. ProjectileScript - partly

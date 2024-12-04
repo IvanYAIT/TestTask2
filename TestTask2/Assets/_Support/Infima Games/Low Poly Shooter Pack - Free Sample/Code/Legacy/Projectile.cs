@@ -60,31 +60,34 @@ public class Projectile : MonoBehaviour {
 			Destroy (gameObject);
 		}
 
-		// Поменял 4 if на switch
-		switch (collision.transform.tag)
+
+		int randomNum = Random.Range(0, bloodImpactPrefabs.Length);
+		Quaternion rot = Quaternion.LookRotation(collision.contacts[0].normal);
+        // Поменял 4 if на switch а также вывел в переменные повторяющиеся элементы
+        switch (collision.transform.tag)
 		{
 			case "Blood":
-                Instantiate(bloodImpactPrefabs[Random.Range
-					(0, bloodImpactPrefabs.Length)], transform.position,
-					Quaternion.LookRotation(collision.contacts[0].normal));
+                Instantiate(bloodImpactPrefabs[randomNum], 
+							transform.position,
+							rot);
                 Destroy(gameObject);
 				break;
             case "Metal":
-                Instantiate(metalImpactPrefabs[Random.Range
-                    (0, bloodImpactPrefabs.Length)], transform.position,
-                    Quaternion.LookRotation(collision.contacts[0].normal));
+                Instantiate(metalImpactPrefabs[randomNum], 
+							transform.position, 
+							rot);
                 Destroy(gameObject);
                 break;
             case "Dirt":
-                Instantiate(dirtImpactPrefabs[Random.Range
-                    (0, bloodImpactPrefabs.Length)], transform.position,
-                    Quaternion.LookRotation(collision.contacts[0].normal));
+                Instantiate(dirtImpactPrefabs[randomNum], 
+							transform.position, 
+							rot);
                 Destroy(gameObject);
                 break;
             case "Concrete":
-                Instantiate(concreteImpactPrefabs[Random.Range
-                    (0, bloodImpactPrefabs.Length)], transform.position,
-                    Quaternion.LookRotation(collision.contacts[0].normal));
+                Instantiate(concreteImpactPrefabs[randomNum], 
+							transform.position, 
+							rot);
                 Destroy(gameObject);
                 break;
         }

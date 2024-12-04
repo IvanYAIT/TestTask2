@@ -2,8 +2,12 @@
 using System.Collections;
 
 public class ProjectileScript : MonoBehaviour {
-
-	private bool explodeSelf;
+    /*
+		Заменил все GetComponent<Rigidbody>() на rb
+		Удалил if (hit.CompareTag("Player")) continue;
+		Удалил переменную explodeSelf
+		Убрал лишнию проверку поподания снаряда в цель 
+	*/
 	[Tooltip("Enable to use constant force, instead of force at launch only")]
 	public bool useConstantForce;
 	[Tooltip("How fast the projectile moves")]
@@ -38,12 +42,16 @@ public class ProjectileScript : MonoBehaviour {
 		"before destroying object")]
 	public float destroyDelay;
 
+	[Header("Other")]
+	[SerializeField] private Rigidbody rb;
+	[SerializeField] private MeshRenderer meshRenderer;
+	[SerializeField] private BoxCollider boxCollider;
+
 	private void Start () 
 	{
 		if (!useConstantForce) 
 		{
-			GetComponent<Rigidbody> ().AddForce 
-				(gameObject.transform.forward * force);
+            rb.AddForce(gameObject.transform.forward * force);
 		}
 
 		StartCoroutine (DestroyTimer ());
@@ -51,15 +59,13 @@ public class ProjectileScript : MonoBehaviour {
 		
 	private void FixedUpdate()
 	{
-		if(GetComponent<Rigidbody>().velocity != Vector3.zero)
-			GetComponent<Rigidbody>().rotation = 
-				Quaternion.LookRotation(GetComponent<Rigidbody>().velocity);  
+		if(rb.velocity != Vector3.zero)
+            rb.rotation = Quaternion.LookRotation(rb.velocity);  
 
 		if (useConstantForce == true && !hasStartedExplode) {
-			GetComponent<Rigidbody>().AddForce 
-				(gameObject.transform.forward * constantForceSpeed);
+            rb.AddForce(gameObject.transform.forward * constantForceSpeed);
 
-			StartCoroutine (ExplodeSelf ());
+			StartCoroutine (ExplodeSelf());
 
 			hasStartedExplode = true;
 		}
@@ -73,14 +79,14 @@ public class ProjectileScript : MonoBehaviour {
 			Instantiate (explosionPrefab, transform.position, transform.rotation);
 		}
 
-		gameObject.GetComponent<MeshRenderer> ().enabled = false;
-		gameObject.GetComponent<Rigidbody> ().isKinematic = true;
-		gameObject.GetComponent<BoxCollider>().isTrigger = true;
+		meshRenderer.enabled = false; // Заменил gameObject.GetComponent<MeshRenderer> () на meshRenderer
+        rb.isKinematic = true;
+		boxCollider.isTrigger = true; // Заменил gameObject.GetComponent<BoxCollider>() на boxCollider
 
-		if (usesParticles == true) {
-			flameParticles.GetComponent <ParticleSystem> ().Stop ();
-			smokeParticles.GetComponent<ParticleSystem> ().Stop ();
-		}
+        if (usesParticles == true) {
+			flameParticles.Stop(); // убрал .GetComponent <ParticleSystem> ()
+            smokeParticles.Stop(); // убрал .GetComponent <ParticleSystem> ()
+        }
 
 		yield return new WaitForSeconds (destroyDelay);
 
@@ -101,47 +107,33 @@ public class ProjectileScript : MonoBehaviour {
 
 	private void OnCollisionEnter (Collision collision)
 	{
-		if (collision.transform.CompareTag("Player"))
-			return;
+		//if (collision.transform.CompareTag("Player"))  Возможно лишняя проверка
+		//	return;
 		
 		hasCollided = true;
 
-		gameObject.GetComponent<MeshRenderer> ().enabled = false;
-		gameObject.GetComponent<Rigidbody> ().isKinematic = true;
-		gameObject.GetComponent<BoxCollider>().isTrigger = true;
+		meshRenderer.enabled = false;  // Заменил gameObject.GetComponent<MeshRenderer> () на meshRenderer
+        rb.isKinematic = true;
+		boxCollider.isTrigger = true;  // Заменил gameObject.GetComponent<BoxCollider>() на boxCollider
 
-		if (usesParticles == true) {
-			flameParticles.GetComponent <ParticleSystem> ().Stop ();
-			smokeParticles.GetComponent<ParticleSystem> ().Stop ();
-		}
+        if (usesParticles) {
+			flameParticles.Stop (); // убрал .GetComponent <ParticleSystem> ()
+            smokeParticles.Stop (); // убрал .GetComponent <ParticleSystem> ()
+        }
 
 		StartCoroutine (DestroyTimerAfterCollision ());
 
 		Instantiate(explosionPrefab,collision.contacts[0].point,
 			Quaternion.LookRotation(collision.contacts[0].normal));
 
-		// Изменил проерку по тэгу на проерку на наличие компонента, а также убрал все GetComponent
-		TargetScript targetScript;
-		collision.gameObject.TryGetComponent<TargetScript>(out targetScript);
-		if (!targetScript!.IsHit)
-		{
-            Instantiate(explosionPrefab, collision.contacts[0].point,
-                        Quaternion.LookRotation(collision.contacts[0].normal));
-
-			targetScript.React();
-        }
-
 		Vector3 explosionPos = transform.position;
 		Collider[] colliders = Physics.OverlapSphere(explosionPos, radius);
 		foreach (Collider hit in colliders)
-		{
-			if (hit.CompareTag("Player"))
-				continue;
-			
-			Rigidbody rb = hit.GetComponent<Rigidbody> ();
+		{	
+			Rigidbody hitRb = hit.GetComponent<Rigidbody> ();
 
-			if (rb != null)
-				rb.AddExplosionForce (power * 50, explosionPos, radius, 3.0F);
+			if (hitRb != null)
+				hitRb.AddExplosionForce (power * 50, explosionPos, radius, 3.0F);
 
 			// Изменил проверку по тэгам на проверку наличия компонента
 			IHaveProjectileReaction hitTarget;

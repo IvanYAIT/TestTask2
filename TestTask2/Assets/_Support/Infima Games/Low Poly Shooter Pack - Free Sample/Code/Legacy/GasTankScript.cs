@@ -88,8 +88,8 @@ public class GasTankScript : MonoBehaviour, IHaveProjectileReaction { // Доб�
 		foreach (Collider hit in colliders) 
 		{
 			Rigidbody hitRb = hit.GetComponent<Rigidbody> ();
-			
-			if (hitRb != null)
+
+            if (hitRb != null)
 				hitRb.AddExplosionForce (explosionForce * 50, explosionPos, explosionRadius);
 
             // Изменил проверку по тэгам на проверку наличия компонента
